@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect
 from django.http import HttpResponse
 from urllib.parse import urlencode
 from django.template import loader
+from .models import setTicket
 
 import json
 
@@ -78,8 +79,17 @@ def usages(request):
 @login_required
 def register(request):
     user = request.user
-    auth0user = user.social_auth.get(provider='auth0')
     context = {}
+    context['err_message'] = ""
+    if request.method == "POST":
+        token = request.POST['ticket_name']
+        print("Ticket Keyword is ",token)
+        # needs to find ticket
+        if setTicket(user,token):
+            return redirect(videos)
+        context['err_message'] = "Error with Keyword! Please retry."        
+
+    auth0user = user.social_auth.get(provider='auth0')
     context['segment'] = 'register'
     context['auth0pic'] = auth0user.extra_data['picture']
 

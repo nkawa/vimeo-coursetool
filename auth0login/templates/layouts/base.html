@@ -64,6 +64,8 @@
 <!-- Volt CSS -->
 <link type="text/css" href="/static/assets/css/volt.css" rel="stylesheet">
 
+{% block stylesheets %}{% endblock stylesheets %}
+
 </head>
 <body>
 
@@ -91,6 +93,9 @@
   </main>
 
   {% include 'includes/scripts.html' %}
+
+  {% block javascripts %}{% endblock javascripts %}
+
 
 </body>
 </html>

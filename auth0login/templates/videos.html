@@ -1,9 +1,11 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} Settings {% endblock %} 
+{% block title %} Videos {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<link type="text/css" href="/static/assets/vendor/plyr/plyr.css" rel="stylesheet">
+{% endblock stylesheets %}
 
 {% block content %}
 
@@ -23,10 +25,10 @@
 
           <div class="card card-body shadow-sm mb-4 mb-lg-0">
 
-              <div id="player" data-plyr-provider="vimeo" data-plyr-embed-id="624180970"></div>
+              <div id="player2" data-plyr-provider="vimeo" data-plyr-embed-id="624180970"></div>
         </div>
         <div class="card card-body shadow-sm mb-4 mb-lg-0">
-            <div id="player" data-plyr-provider="vimeo" data-plyr-embed-id="495135417"></div>
+            <div id="player3" data-plyr-provider="vimeo" data-plyr-embed-id="495135417"></div>
         </div>
 
         <div style="padding:56.25% 0 0 0;position:relative;"><iframe src="https://player.vimeo.com/video/495135417?h=debbc28aa8&title=0&byline=0&portrait=0&speed=0&badge=0&autopause=0&player_id=0&app_id=58479/embed" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen frameborder="0" style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe></div>
@@ -43,4 +45,14 @@
 {% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->
-{% block javascripts %}{% endblock javascripts %}
+{% block javascripts %}
+<!-- plyr -->
+<script src="/static/assets/vendor/plyr/plyr.min.js"></script>
+<script>
+    const player = new Plyr('#player');
+    const player2 = new Plyr('#player2');
+    const player3 = new Plyr('#player3');
+    console.log("Player",player);
+</script>
+
+{% endblock javascripts %}

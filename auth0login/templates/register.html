@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} Settings {% endblock %} 
+{% block title %} Register {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}{% endblock stylesheets %}
@@ -17,15 +17,20 @@
               <ul class="list-group list-group-flush">
                   <li class="list-group-item d-flex align-items-center justify-content-between px-0 border-bottom">
                       <div>
-                        <form action="/register.html" method="post">
-                                <div class="col-md-12">
-                                    <h3 class="h6 mb-1">登録キーワードの入力</h3>
-                                    <br />
-                                    <input class="form-control" id="ticket_name" type="text" placeholder="Enter Keyword" required>
+                        <form action="register.html" method="POST">
+                            {% csrf_token %}
+                            <div class="col-mb-12">
+
+                                    <h3 class="h6 mb-3">登録キーワードの入力</h3>
+                                    <input class="form-control" name="ticket_name" type="text" placeholder="Enter Keyword" required>
                                 </div>
-                                <div class="mt-3">
+                                <div class="mt-3 mb-3">
                                     <button type="submit" class="btn btn-dark">視聴登録</button>
                                 </div>
+                                <div class="h6 mb-4" style="color: crimson;">
+                                    {{err_message}}
+                                </div>
+                            </div>
                         </form>
                       </div>
                   </li>
