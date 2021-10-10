@@ -1,0 +1,44 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Settings {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+  <div class="row">
+      <div class="col-12 col-xl-12">
+          
+          <div class="card card-body shadow-sm mb-4 mb-lg-0">
+              <h2 class="h5 mb-4">
+                <span class="sidebar-icon">
+                    <img src="/static/assets/img/brand/TMI_Logo_150x152.png" height="40" width="40" alt="TMI Logo">
+                  </span>      
+                <strong> TMI </strong> Online の利用方法
+              </h2>
+              <ul class="list-group list-group-flush">
+                  <li class="list-group-item d-flex align-items-center justify-content-between px-0 border-bottom">
+                      <div>
+                          <h3 class="h6 mb-1">講義の視聴登録</h3>
+                          <p class="small pe-4">講義の視聴登録には、登録キーワードが必要です。
+                              講義担当者から入手してください。<br />
+                              メニューの "Register"から登録してください。
+                          </p>
+                      </div>
+                  </li>
+                  <li class="list-group-item d-flex align-items-center justify-content-between px-0 border-bottom">
+                      <div>
+                          <h3 class="h6 mb-1">利用状況</h3>
+                          <p class="small pe-4">視聴状況については、随時システム側で確認しています。</p>
+                      </div>
+                  </li>
+              </ul>
+          </div>
+      </div>
+  </div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
