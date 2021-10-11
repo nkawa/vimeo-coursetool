@@ -6,7 +6,8 @@ from django.http import HttpResponseRedirect
 from django.http import HttpResponse
 from urllib.parse import urlencode
 from django.template import loader
-from .models import setTicket
+from django.contrib.auth.models import Group, User
+from .models import setTicket, Course, Media
 
 import json
 
@@ -102,12 +103,60 @@ def register(request):
 def videos(request):
     user = request.user
     auth0user = user.social_auth.get(provider='auth0')
+    
+    # 各コースを見て、それぞれのグループを有しているかを確認
+    gall = user.groups.all()
+    gnames = [g.name for g in gall]
+    
+    print(gall)
+    course_all = Course.objects.all()
+    cs_titles = []
+    n = 0
+    for cs in course_all:
+        if any((cs.group == g) for g in gall):
+            nn = []
+            for media in cs.mlist.all():
+                if media.enabled:
+                    nn.append((media.theme, media.name,media.lecturer, media.vid,n ))
+                    n += 1
+            cs_titles.append((cs.name,nn))
+
     context = {}
     context['segment'] = 'videos'
     context['auth0pic'] = auth0user.extra_data['picture']
+    context['cs_titles'] = cs_titles
+    context['novideo'] = False
+    if len(cs_titles)== 0:
+        context['novideo'] = True
 
     html_template =  loader.get_template( 'videos.html' )
     return HttpResponse(html_template.render(context, request))
+
+
+def privacy(request):
+    context = {}
+    user = request.user
+    if not user.is_anonymous:
+        auth0user = user.social_auth.get(provider='auth0')
+        context['auth0pic'] = auth0user.extra_data['picture']
+    else:
+        context['auth0pic'] = ""
+    context['segment'] = 'privacy'
+    html_template =  loader.get_template( 'privacy.html' )
+    return HttpResponse(html_template.render(context, request))
+
+def terms(request):
+    context = {}
+    user = request.user
+    if not user.is_anonymous:
+        auth0user = user.social_auth.get(provider='auth0')
+        context['auth0pic'] = auth0user.extra_data['picture']
+    else:
+        context['auth0pic'] = ""
+    context['segment'] = 'terms'
+    html_template =  loader.get_template( 'terms.html' )
+    return HttpResponse(html_template.render(context, request))
+
 
 
 def logout(request):

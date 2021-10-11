@@ -46,12 +46,13 @@
           </a>
         </li>
 
-	<li class="nav-item {% if 'usages' in segment %} active {% endif %}">
-		<a href="/usages.html" class="nav-link">
-		 <span class="sidebar-icon"><span class="far fa-comment-dots"></span></span>
-                   <span class="sidebar-text">Usages</span>
+      	<li class="nav-item {% if 'usages' in segment %} active {% endif %}">
+		      <a href="/usages.html" class="nav-link">
+		            <span class="sidebar-icon"><span class="far fa-comment-dots"></span></span>
+                 <span class="sidebar-text">Usages</span>
              </a>
         </li>
+      <!--
         <li class="nav-item {% if 'settings' in segment %} active {% endif %}">
           <a href="/settings.html" class="nav-link">
             <span class="sidebar-icon"><span class="fas fa-cog"></span></span>
@@ -59,8 +60,20 @@
           </a>
         </li>
         <li role="separator" class="dropdown-divider mt-4 mb-3 border-black"></li>
-
-        
+       -->
+      <li class="nav-item {% if 'privacy' in segment %} active {% endif %}">
+        <a href="/privacy.html" class="nav-link">
+          <span class="sidebar-icon"><span class="far fa-file-alt"></span></span>
+          <span class="sidebar-text">Prvivacy Policy</span>
+        </a>
+      </li>
+      <li class="nav-item {% if 'terms' in segment %} active {% endif %}">
+        <a href="/terms.html" class="nav-link">
+          <span class="sidebar-icon"><span class="far fa-flag"></span></span>
+          <span class="sidebar-text">Terms</span>
+        </a>
+      </li>
+    
       </ul>
     </div>
   </nav>
