@@ -14,6 +14,7 @@ import json
 
 def index(request):
     user = request.user
+#    return redirect(dashboard)
     if user.is_authenticated:
         return redirect(dashboard)
     else:
@@ -23,7 +24,10 @@ def index(request):
 @login_required
 def dashboard(request):
     user = request.user
-    auth0user = user.social_auth.get(provider='auth0')
+    try:  # check if login (for admin user)
+        auth0user = user.social_auth.get(provider='auth0')
+    except:
+        return redirect(logout)
     userdata = {
         'user_id': auth0user.uid,
         'name': user.first_name,
@@ -35,7 +39,6 @@ def dashboard(request):
     context['segment'] = 'dashboard'
     context['auth0user'] = auth0user
     context['auth0pic'] = auth0user.extra_data['picture']
-    print(context)
 
     html_template =  loader.get_template( 'dashboard.html' )
     return HttpResponse(html_template.render(context, request))
@@ -49,20 +52,40 @@ def dashboard(request):
 @login_required
 def user_settings(request):
     user = request.user
-    auth0user = user.social_auth.get(provider='auth0')
-    userdata = {
-        'user_id': auth0user.uid,
-        'name': user.first_name,
-        'picture': auth0user.extra_data['picture'],
-        'email': auth0user.extra_data['email']
-    }
+    try:
+        auth0user = user.social_auth.get(provider='auth0')
+    except:
+        return redirect(logout)
 
     context = {}
     context['segment'] = 'settings'
     context['auth0pic'] = auth0user.extra_data['picture']
-
-
+    context['username'] = user.username
+    context['first_name'] = user.first_name
+    context['last_name'] = user.last_name
+    context['email'] = auth0user.extra_data['email']
+ 
     html_template =  loader.get_template( 'settings.html' )
+    return HttpResponse(html_template.render(context, request))
+
+
+@login_required
+def profile(request):
+    user = request.user
+    try:
+        auth0user = user.social_auth.get(provider='auth0')
+    except:
+        return redirect(logout)
+
+    context = {}
+    context['segment'] = 'settings'
+    context['auth0pic'] = auth0user.extra_data['picture']
+#    context['username'] = user.username
+#    context['first_name'] = user.first_name
+#    context['last_name'] = user.last_name
+    context['email'] = auth0user.extra_data['email']
+
+    html_template =  loader.get_template( 'profile.html' )
     return HttpResponse(html_template.render(context, request))
 
 
@@ -84,7 +107,6 @@ def register(request):
     context['err_message'] = ""
     if request.method == "POST":
         token = request.POST['ticket_name']
-        print("Ticket Keyword is ",token)
         # needs to find ticket
         if setTicket(user,token):
             return redirect(videos)
@@ -108,7 +130,6 @@ def videos(request):
     gall = user.groups.all()
     gnames = [g.name for g in gall]
     
-    print(gall)
     course_all = Course.objects.all()
     cs_titles = []
     n = 0

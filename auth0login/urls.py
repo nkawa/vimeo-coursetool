@@ -6,6 +6,7 @@ urlpatterns = [
     path('dashboard', views.dashboard),
     path('dashboard.html', views.dashboard),
     path('settings.html', views.user_settings),
+    path('profile.html', views.profile),
     path('usages.html', views.usages),
     path('videos.html', views.videos),
     path('register.html', views.register),

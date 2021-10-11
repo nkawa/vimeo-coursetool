@@ -1,0 +1,115 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} Profile {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+  <div class="row">
+      <div class="col-12 col-xl-8">
+          <div class="card card-body shadow-sm mb-4">
+              <h2 class="h5 mb-4">User Profile</h2>
+              <form>
+                <div class="col-md-6 mb-3">
+                    <div>
+                        <label for="username">User Name</label>
+                        <input class="form-control" id="first_name" type="text" placeholder="Enter your first name" 
+                          value="{{ user.username}}"
+                        required>
+                    </div>
+                </div>
+
+                  <div class="row">
+                      <div class="col-md-6 mb-3">
+                          <div>
+                              <label for="first_name">First Name</label>
+                              <input class="form-control" id="first_name" type="text" placeholder="Enter your first name" 
+                                value="{{ user.first_name}}" required>
+                          </div>
+                      </div>
+                      <div class="col-md-6 mb-3">
+                          <div>
+                              <label for="last_name">Last Name</label>
+                              <input class="form-control" id="last_name" type="text" placeholder="Also your last name" 
+                              value="{{ user.last_name}}" required>                              
+                          </div>
+                      </div>
+                  </div>
+                  <div class="row">
+                      <div class="col-md-6 mb-3">
+                          <div class="form-group">
+                              <label for="email">Email</label>
+                              <input class="form-control" id="email" type="email" placeholder="name@company.com"
+                              value="{{ user.email}}"
+                              required>
+                          </div>
+                      </div>
+                  </div>
+                  <h2 class="h5 my-4">TMI オンライン受講情報</h2>
+                  <div class="row">
+                      <div class="col-sm-8 mb-3">
+                          <div class="form-group">
+                              <label for="department">所属組織・部局</label>
+                              <input class="form-control" id="department" type="text" placeholder="Enter your affiliation" 
+                               value=""
+                              required>
+                          </div>
+                      </div>
+                      <div class="col-sm-4 mb-3">
+                          <div class="form-group">
+                              <label for="position">役職・学年</label>
+                              <input class="form-control" id="number" type="text" placeholder="" required>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="row">
+                    <div class="col-sm-4">
+                        <div class="form-group">
+                            <label for="zip">郵便番号</label>
+                            <input class="form-control" id="zip" type="tel" placeholder="ZIP" required>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 mb-3">
+                          <div class="form-group">
+                              <label for="city">県・市町村</label>
+                              <input class="form-control" id="city" type="text" placeholder="City" required>
+                          </div>
+                      </div>
+                  </div>
+                  <div class="mt-3">
+                      <button type="submit" class="btn btn-dark">Save All</button>
+                  </div>
+              </form>
+          </div>
+
+      </div>
+      <div class="col-12 col-xl-4">
+          <div class="row">
+              <div class="col-12 mb-4">
+                  <div class="card shadow-sm text-center p-0">
+                      <div class="profile-cover rounded-top" data-background="/static/assets/img/profile-cover.jpg"></div>
+                      <div class="card-body pb-5">
+                          <img src="{{auth0pic}}" class="user-avatar large-avatar rounded-circle mx-auto mt-n7 mb-4" alt="Neil Portrait">
+                          <h4 class="h3">
+                            {{ request.user.username }}
+                          </h4>
+                          <h5 class="fw-normal">
+                            {{ user.first_name }} {{ user.last_name }}
+                          </h5>
+                          <h5 class="fw-normal">
+                            {{ request.user.email }}
+                          </h5>
+                      </div>
+                    </div>
+              </div>
+
+            </div>
+      </div>
+  </div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
