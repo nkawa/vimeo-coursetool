@@ -50,6 +50,9 @@
     {% for tt in cs_titles %}
         {% for vs in tt.1 %}
             const player{{vs.4}} = new Plyr('#vplayer{{vs.4}}');
+            player{{vs.4}}.on( 'playing', event  =>  {
+                console.log("Player{{vs.4}}:",event.detail.plyr);
+            });
         {% endfor %}
     {% endfor %}
 </script>

@@ -26,7 +26,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-6jcn$qgw^3cv7zp81m04%eni^mv@ter=u54uwppqg34czm45u#'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+#DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ["online.tmi.mirai.nagoya-u.ac.jp"]
 
@@ -170,6 +171,12 @@ AUTHENTICATION_BACKENDS = {
     'django.contrib.auth.backends.ModelBackend'
 }
 
-
 LOGIN_URL = '/login/auth0'
 LOGIN_REDIRECT_URL = '/dashboard'
+
+# This is for staticfile serving
+# You have to set STATIC_ROOT in .env
+# If you change static file, please do "python3 manage.py collectstatic"
+if os.environ.get('STATIC_ROOT'):
+    STATIC_ROOT = os.environ.get('STATIC_ROOT')
+

@@ -1,5 +1,13 @@
 from django.urls import path, include
 from . import views
+from django.conf import settings
+
+#This is slow. So, you may check your server settings.
+#if settings.DEBUG is False:
+#    urlpatterns += patterns('',
+#        url(r'^static/(?P<path>.*)$', 'django.views.static.serve', {'document_root':settings.STATIC_ROOT}),
+#    )
+
 
 urlpatterns = [
     path('', views.index),
