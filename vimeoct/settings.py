@@ -78,10 +78,27 @@ WSGI_APPLICATION = 'vimeoct.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+
+ENV_FILE = find_dotenv()
+if ENV_FILE:
+    load_dotenv(ENV_FILE)
+
+MYSQL_DB_NAME = os.environ.get('MYSQL_DB_NAME')
+MYSQL_DB_HOST = os.environ.get('MYSQL_DB_HOST')
+MYSQL_DB_USER = os.environ.get('MYSQL_DB_USER') 
+MYSQL_DB_PASSWORD = os.environ.get('MYSQL_DB_PASSWORD') 
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': MYSQL_DB_NAME,
+        'USER': MYSQL_DB_USER,
+        'PASSWORD': MYSQL_DB_PASSWORD, 
+        'HOST': MYSQL_DB_HOST,
+        'PORT': '3306',
+        'OPTIONS':{
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+        },
     }
 }
 
@@ -128,11 +145,6 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-
-ENV_FILE = find_dotenv()
-if ENV_FILE:
-    load_dotenv(ENV_FILE)
 
 
 # SOCIAL AUTH AUTH0 BACKEND CONFIG
