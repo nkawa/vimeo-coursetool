@@ -76,6 +76,7 @@ def user_settings(request):
     user = request.user
     try:
         auth0user = user.social_auth.get(provider='auth0')
+        up , ok= UserProfile.objects.get_or_create(user=user)
     except:
         return redirect(logout)
 
@@ -86,6 +87,7 @@ def user_settings(request):
     context['username'] = user.username
     context['first_name'] = user.first_name
     context['last_name'] = user.last_name
+    context['up'] = up  # UserProfile
     context['email'] = auth0user.extra_data['email']
  
     html_template =  loader.get_template( 'settings.html' )
