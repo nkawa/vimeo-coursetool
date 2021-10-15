@@ -7,18 +7,27 @@ from django.http import HttpResponse
 from urllib.parse import urlencode
 from django.template import loader
 from django.contrib.auth.models import Group, User
-from .models import setTicket, Course, Media
+from .models import setTicket, Course, Media, UserProfile
+from django.core.exceptions import ObjectDoesNotExist
 
+import traceback
 import json
 
 
 def index(request):
     user = request.user
 #    return redirect(dashboard)
+    print("Check Auth in Index",user)
     if user.is_authenticated:
         return redirect(dashboard)
     else:
         return render(request, 'index.html')
+
+
+# obtain touser from auth user
+#def get_tmi_online_user(user):
+
+
 
 
 @login_required
@@ -26,8 +35,21 @@ def dashboard(request):
     user = request.user
     try:  # check if login (for admin user)
         auth0user = user.social_auth.get(provider='auth0')
+        print("Got User! in Dashboard", user,auth0user)
+    # check if userProfile is created.
+        up =  UserProfile.objects.get(user=user)
+        up.save()
+        print("Get UserProfile!",up)
+    except ObjectDoesNotExist:
+        print("Can't get userProfile!")
+        up =  UserProfile.objects.create(user=user)
+        return redirect(user_settings)
     except:
+        print("No login",user)
+        traceback.print_exc()
         return redirect(logout)
+   
+   
     userdata = {
         'user_id': auth0user.uid,
         'name': user.first_name,
@@ -60,6 +82,7 @@ def user_settings(request):
     context = {}
     context['segment'] = 'settings'
     context['auth0pic'] = auth0user.extra_data['picture']
+    context['profinp'] = 'view'
     context['username'] = user.username
     context['first_name'] = user.first_name
     context['last_name'] = user.last_name
@@ -74,15 +97,30 @@ def profile(request):
     user = request.user
     try:
         auth0user = user.social_auth.get(provider='auth0')
+        up , cd= UserProfile.objects.get_or_create(user=user)
+        print("Print UserProfile is created",up,cd)
     except:
         return redirect(logout)
+    print("Print UserProfile is created2",up)
+    print("User",up.user)
+
+    if request.method == "POST":
+        user.last_name = request.POST['last_name']
+        user.first_name = request.POST['first_name']
+        user.email = request.POST['email']
+        up.position = request.POST['position']
+        up.zip = request.POST['zip']
+        up.city = request.POST['city']
+        up.affi = request.POST['affi']
+        user.save()
+        up.save()
+
 
     context = {}
     context['segment'] = 'settings'
     context['auth0pic'] = auth0user.extra_data['picture']
-#    context['username'] = user.username
-#    context['first_name'] = user.first_name
-#    context['last_name'] = user.last_name
+    context['profinp'] = 'edit'
+    context['up'] = up  # UserProfile
     context['email'] = auth0user.extra_data['email']
 
     html_template =  loader.get_template( 'profile.html' )

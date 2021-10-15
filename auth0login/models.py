@@ -9,7 +9,7 @@ class Ticket(models.Model):
     ticketKeyword = models.CharField(max_length=20) # チケットのキーワード
     ticketCount = models.IntegerField(default= 0)             # チケット受付数（あくまで参考値）
     def __str__(self):
-        return self.ticketName
+        return self.ticketName+":Key:"+self.ticketKeyword
 
 # 個別のビデオを表現するクラス
 class Media(models.Model):
@@ -20,27 +20,33 @@ class Media(models.Model):
     enabled = models.BooleanField(default=True) # ビデオがあるかないか
     viewCount = models.IntegerField(default= 0) # 視聴回数
     likeCount = models.IntegerField(default= 0) # いいね回数
+    def __str__(self):
+        return self.name+":"+self.lecturer
 
 # 講義一式を表現するクラス
 class Course(models.Model):
     name  = models.TextField()               # 講義名称
     mlist = models.ManyToManyField(Media)    # Media 一覧
     group = models.ForeignKey(Group, on_delete=models.PROTECT)  # 対応するグループ
+    def __str__(self):
+        return self.name
 
 # ビデオの視聴状況を使うためのデータ
 class MediaViewCount(models.Model):
     media = models.OneToOneField(Media, on_delete = models.PROTECT) # 対応ビデオ
     is_like = models.BooleanField(default=False)                    # Likeかどうか
 
-# TMI_Online のユーザ
-class TOUser(models.Model):
-    user = models.OneToOneField(User, on_delete = models.CASCADE) # 対応するユーザ
+# ユーザ プロフィール
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete = models.CASCADE, related_name = "profile") # 対応するユーザ
     affi = models.CharField(max_length=60)       # 所属・部局
     position = models.CharField(max_length = 40) # 役職・学年
     zip = models.CharField(max_length = 10)      # 郵便番号
     city = models.CharField(max_length = 30)     # 県・市
     # Video の視聴カウント
     viewcount = models.ManyToManyField(MediaViewCount)    # 視聴したMediaViewCount 一覧
+    def __str__(self):
+        return self.user.username
 
 
 # 特定のユーザからのチケット登録　OKならGroup登録してTrue
