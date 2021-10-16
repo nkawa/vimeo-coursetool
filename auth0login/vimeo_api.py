@@ -15,6 +15,11 @@ v = VimeoClient(
 
 #pict = v.get('/videos/506063480/pictures')
 
+#pict = v.get('/videos/506063480')
+#print(pict.text)
+
+
+
 #print(pict.json()['data'][0]['sizes'][3]['link'])
 def GetVimeoThummnail(id):
     query="/videos/"+id+"/pictures"
@@ -27,6 +32,15 @@ def GetVimeoThummnail(id):
 #    print(dt[3]['width'],dt[3]['link'])
     return (dt[3]['link'])
 
+def GetVimeoDuration(id):
+    query="/videos/"+id
+    resp = v.get(query)
+    rjson = resp.json()
+    if 'duration' in rjson: 
+#    print(dt[3]['width'],dt[3]['link'])
+        return rjson['duration']
+    else:
+        return "0"
 
 
-
+#print(GetVimeoDuration("506063480"))

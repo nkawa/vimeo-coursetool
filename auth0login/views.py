@@ -7,10 +7,10 @@ from django.http import HttpResponse
 from urllib.parse import urlencode
 from django.template import loader
 from django.contrib.auth.models import Group, User
-from .models import setTicket, Course, Media, UserProfile
+from .models import setTicket, Course, Media, UserProfile, MediaViewCount
 from django.core.exceptions import ObjectDoesNotExist
 
-from .vimeo_api import GetVimeoThummnail
+from .vimeo_api import GetVimeoThummnail, GetVimeoDuration
 
 import traceback
 import json
@@ -110,6 +110,7 @@ def profile(request):
     print("User",up.user)
 
     if request.method == "POST":
+        print(request.POST)
         user.last_name = request.POST['last_name']
         user.first_name = request.POST['first_name']
         user.email = request.POST['email']
@@ -184,6 +185,11 @@ def get_thumbnail(media):  # vimeo の embed から thumbnail を取得
             media.save()
         return
 
+def get_duration(media):  # vimeo の API から duration を取得
+    dur = GetVimeoDuration(media.vid)
+    print("Get Video Duraion:"+media.vid, dur)
+    media.duration = int(dur)
+    media.save()
 
 @login_required
 def videos(request):
@@ -205,8 +211,10 @@ def videos(request):
                 if media.enabled:
                     if media.thumb_url == '':  #サムネールが無い場合
                         get_thumbnail(media)
-
-                    nn.append((media.theme, media.name,media.lecturer, media.vid,n, media.thumb_url ))
+                    if media.duration == 0:    #時間が無い場合
+                        get_duration(media)
+                    nn.append((media.theme, media.name,media.lecturer, media.vid,n, media.thumb_url,
+                               int(media.duration/60), media.duration%60, media.viewCount, media.likeCount ))
                     n += 1
             cs_titles.append((cs.name,nn))
 
@@ -219,6 +227,93 @@ def videos(request):
         context['novideo'] = True
 
     html_template =  loader.get_template( 'videos.html' )
+    return HttpResponse(html_template.render(context, request))
+
+
+# ビデオの視聴状況のレポート
+@login_required
+def set_video(request):
+    user = request.user
+#    print("User:",user) # user があるのか？
+    if 'vid' in request.POST:
+        vid = request.POST['vid']
+    else:
+        print("Not good!")
+        return HttpResponse("Bad")
+
+    if 'currentTime' in request.POST:
+        ct = request.POST['currentTime']
+        sp = request.POST['cspeed']
+    # まずは、 UserProfileの取得
+        try:
+            up = UserProfile.objects.get(user=user)
+            print("Got!",vid,ct,sp)
+    # vid があるかをチェック
+            media = Media.objects.get(vid=vid)
+
+            vlist = up.viewcount.filter(media=media)
+            if len(vlist) == 0:
+                print("No count!")
+                mvc = MediaViewCount.objects.create(media=media,
+                    currentTime=int(float(ct)))
+                up.viewcount.add(mvc)
+                media.viewCount = media.viewCount+1
+                media.save()
+                mvc.save()
+                up.save()
+            else:
+                mvc = vlist[0]
+                mvc.currentTime = int(float(ct))
+                mvc.save()
+            print("Saved mediaViewCount",mvc)
+
+        except ObjectDoesNotExist:
+            print("Can't get userProfile! or media")
+            return HttpResponse("No up or media")
+
+    return HttpResponse("OK")
+
+
+
+# １つのビデオだけをみる
+@login_required
+def view_video(request):
+    user = request.user
+    auth0user = user.social_auth.get(provider='auth0')
+#
+    if 'vid' in request.GET:
+        view_id = request.GET['vid']
+        print("Show video of"+view_id)
+    
+    # 各コースを見て、それぞれのグループを有しているかを確認
+    gall = user.groups.all()
+    gnames = [g.name for g in gall]
+    
+#    course_all = Course.objects.all()
+    course_all = Course.objects.order_by('order')
+    cs_titles = []
+    n = 0
+    for cs in course_all:
+        if any((cs.group == g) for g in gall):  # ここでグループチェック
+            nn = []
+            for media in cs.mlist.order_by('order'):   #メディアチェック
+                if media.enabled:
+                    if media.vid == view_id: #　対象のビデオかどうか
+                        nn.append((media.theme, media.name,media.lecturer, media.vid,n, media.thumb_url ,0))
+                        n += 1
+            if len(nn)> 0:
+                cs_titles.append((cs.name,nn))
+
+    context = {}
+    context['segment'] = 'videos'
+    context['auth0pic'] = auth0user.extra_data['picture']
+    context['cs_titles'] = cs_titles
+    context['vs'] = cs_titles[0][1][0]
+    context['novideo'] = False
+    if len(cs_titles)== 0:
+        context['novideo'] = True
+
+    html_template =  loader.get_template( 'view_video.html' )
     return HttpResponse(html_template.render(context, request))
 
 

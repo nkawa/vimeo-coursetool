@@ -26,12 +26,16 @@
                     <div class="card card-body shadow-sm mb-4">
                         <div class="row">
                             <div class="col-12 col-xl-4">
+                                <img src="{{vs.5}}">
 <!--                                <div id="vplayer{{vs.4}}"  data-plyr-provider="vimeo" data-plyr-embed-id="{{ vs.3 }}">
                                 </div>
                                 -->
                             </div>
                             <div class="col-12 col-xl-8">
-                                {{ vs.1 }} <br /> ：{{vs.2}} 
+                                <h5>{{ vs.1 }} </h5> &nbsp;&nbsp;{{vs.2}} <br />
+                                {{vs.6}}分{{vs.7}}秒：
+                                <button class="btn btn-tertiary col-lg-3" onclick="window.location.href='/view_video?vid={{vs.3}}'"
+                                > 受講</button>
                             </div>
                         </div>
                     </div>

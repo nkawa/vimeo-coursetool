@@ -19,7 +19,8 @@ class Media(models.Model):
     lecturer = models.CharField(max_length= 60) # 講師の名前
     theme = models.CharField(max_length=40)     # テーマ
     thumb_url = models.CharField(max_length=128, default='')# サムネールのURL (自動登録)
-    enabled = models.BooleanField(default=True) # ビデオがあるかないか
+    duration =  models.IntegerField(default= 0) # ビデオの長さ（秒数）
+    enabled = models.BooleanField(default=True) # ビデオがあるかないか（再生できるかどうか）
     viewCount = models.IntegerField(default= 0) # 視聴回数
     likeCount = models.IntegerField(default= 0) # いいね回数
     def __str__(self):
@@ -34,9 +35,11 @@ class Course(models.Model):
     def __str__(self):
         return self.name
 
-# ビデオの視聴状況を使うためのデータ
+# ビデオの視聴状況を使うためのデータ (再生が始まったタイミングで作成され, ページ遷移前に保存 )
+# これが作成されたタイミングで Media の Viewカウントを追加
 class MediaViewCount(models.Model):
     media = models.OneToOneField(Media, on_delete = models.PROTECT) # 対応ビデオ
+    currentTime = models.IntegerField(default= 0)     # どこまで視聴したか（最後の状況）
     is_like = models.BooleanField(default=False)                    # Likeかどうか
 
 # ユーザ プロフィール

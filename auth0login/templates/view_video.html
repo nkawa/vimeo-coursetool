@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} Videos {% endblock %} 
+{% block title %} View Video {% endblock %} 
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
@@ -14,28 +14,23 @@
         {% if novideo %}
         現在、視聴可能なビデオはありません。登録をお願いします。
         {% endif %}
-        
-        {% for tt in cs_titles %}
-           <div class="card card-body shadow-sm mb-4 mb-lg-4">
-              <h2 class="h5 mb-4">
-                {{ tt.0 }} &nbsp ビデオ一覧
-              </h2>
-              {% for vs in tt.1 %}
-                {{ vs.0 }}
-                    <div class="card card-body shadow-sm mb-4">
-                        <div class="row">
-                            <div class="col-12 col-xl-4">
-                                <div id="vplayer{{vs.4}}"  data-plyr-provider="vimeo" data-plyr-embed-id="{{ vs.3 }}">
-                                </div>
-                            </div>
-                            <div class="col-12 col-xl-8">
-                                {{ vs.1 }} <br /> ：{{vs.2}} 
-                            </div>
-                        </div>
+            <div class="card card-body shadow-sm mb-4 mb-lg-4">                             
+                <h4>{{cs_titles.0.0}}: {{ vs.0 }}「{{ vs.1 }}」</h4>
+                <h5>{{vs.2}}</h5> 
+<!--             <div class="card card-body shadow-sm mb-4"> -->
+                 <div class="col-12 col-xl-10">
+                    <div id="vplayer"  data-plyr-provider="vimeo" data-plyr-embed-id="{{ vs.3 }}">
                     </div>
-              {% endfor %}
-            </div>
-        {% endfor%}
+                 </div>
+                            <!--
+                            <div class="col-12 col-xl-8">
+                                <h3>
+                                  
+                                </h3>
+                            </div>-->
+<!--             </div> -->
+                        {% csrf_token %}
+           </div>
     </div>
    
 <!--    </div>-->
@@ -44,17 +39,82 @@
 
 <!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
-<!-- plyr -->
-<script src="/static/assets/vendor/plyr/plyr.min.js"></script>
+<!-- plyr 
+<script src="/static/assets/vendor/plyr/plyr.min.js"></script>-->
 <script>
-    {% for tt in cs_titles %}
-        {% for vs in tt.1 %}
-            const player{{vs.4}} = new Plyr('#vplayer{{vs.4}}');
-            player{{vs.4}}.on( 'playing', event  =>  {
-                console.log("Player{{vs.4}}:",event.detail.plyr);
+    var currentTime = {{vs.6}};
+    var cspeed = 1;
+    var modified = false;
+
+    var csrf_token = document.getElementsByName("csrfmiddlewaretoken");
+
+    function vd_update(){
+        const psm = fetch("set_video",{
+            credentials: 'include', // with auth info
+            method: 'POST',
+            cache: 'no-cache',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: 
+                encodeURI("csrfmiddlewaretoken="+csrf_token[0].getAttribute("value")
+                +"&vid={{vs.3}}"+
+                "&currentTime="+currentTime+
+                "&cspeed="+cspeed)
+            }).then(response=> response.json())
+        .then(data => {
+            console.log("success",data)
+        }).catch((error)=>{
+            console.log("Fetch failed!",error);
+        });
+    }
+
+    function set_play_status(mode){ // set user and video status
+        ct = player.currentTime
+        console.log(mode,"Time",player.currentTime, "Speed:",player.speed)
+        if (currentTime != ct){
+            currentTime = ct;
+            modified = true; // need push
+            cspeed = player.speed;
+            if (mode == "playing" || mode=="end" || mode == "pause"){
+                vd_update()                
+            }
+        }
+    }
+
+
+    window.onbeforeunload = function(e){
+        if (currentTime != 0 && modified){
+            vd_update();
+        }
+    }
+    
+
+            const player = new Plyr('#vplayer');
+            player.on( 'play', event  =>  {
+                set_play_status("play");
             });
-        {% endfor %}
-    {% endfor %}
+            player.on( 'playing', event  =>  {
+                set_play_status("playing");
+            });
+            player.on( 'progress', event  =>  {
+                set_play_status("progress");
+            });
+            player.on( 'pause', event  =>  {
+                set_play_status("pause");
+            });
+            player.on( 'ended', event  =>  {
+                set_play_status("ended");
+            });
+            player.on( 'seeking', event  =>  {
+                console.log("Seeking",event.detail.plyr);
+            });
+            player.on( 'ratechange', event  =>  {
+                console.log("RateChange",event.detail.plyr);
+                set_play_status("ratechange");
+            });
+
+            // leaving.
 </script>
 
 {% endblock javascripts %}
