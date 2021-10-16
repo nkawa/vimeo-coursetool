@@ -10,8 +10,11 @@ from django.contrib.auth.models import Group, User
 from .models import setTicket, Course, Media, UserProfile
 from django.core.exceptions import ObjectDoesNotExist
 
+from .vimeo_api import GetVimeoThummnail
+
 import traceback
 import json
+import requests
 
 
 def index(request):
@@ -160,6 +163,27 @@ def register(request):
     return HttpResponse(html_template.render(context, request))
 
 
+def get_thumbnail(media):  # vimeo の embed から thumbnail を取得
+    response = requests.get("https://vimeo.com/api/oembed.json?url=https://vimeo.com/"+media.vid)
+    print("Get Video Thum:"+media.vid, response.status_code)
+    if response.status_code == 404:
+        url = GetVimeoThummnail(media.vid)
+        if len(url)>0:
+            media.thumb_url = url
+            media.save()
+        return
+    dict = json.loads(response.text)
+    print(dict)
+    if 'thumbnail_url' in dict:
+        media.thumb_url = dict['thumbnail_url']
+        media.save()
+    else: #thumbnail is not public...
+        url = GetVimeoThummnail(media.vid)
+        if len(url)>0:
+            media.thumb_url = url
+            media.save()
+        return
+
 
 @login_required
 def videos(request):
@@ -170,15 +194,19 @@ def videos(request):
     gall = user.groups.all()
     gnames = [g.name for g in gall]
     
-    course_all = Course.objects.all()
+#    course_all = Course.objects.all()
+    course_all = Course.objects.order_by('order')
     cs_titles = []
     n = 0
     for cs in course_all:
-        if any((cs.group == g) for g in gall):
+        if any((cs.group == g) for g in gall):  # ここでグループチェック
             nn = []
-            for media in cs.mlist.all():
+            for media in cs.mlist.order_by('order'):   #メディアチェック
                 if media.enabled:
-                    nn.append((media.theme, media.name,media.lecturer, media.vid,n ))
+                    if media.thumb_url == '':  #サムネールが無い場合
+                        get_thumbnail(media)
+
+                    nn.append((media.theme, media.name,media.lecturer, media.vid,n, media.thumb_url ))
                     n += 1
             cs_titles.append((cs.name,nn))
 

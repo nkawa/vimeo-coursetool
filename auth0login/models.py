@@ -14,9 +14,11 @@ class Ticket(models.Model):
 # 個別のビデオを表現するクラス
 class Media(models.Model):
     name = models.TextField()                   # ビデオの名前
+    order = models.IntegerField(default= 0) # 表示順位
     vid  = models.CharField(max_length= 10)     # Vimeo上でのビデオID
     lecturer = models.CharField(max_length= 60) # 講師の名前
     theme = models.CharField(max_length=40)     # テーマ
+    thumb_url = models.CharField(max_length=128, default='')# サムネールのURL (自動登録)
     enabled = models.BooleanField(default=True) # ビデオがあるかないか
     viewCount = models.IntegerField(default= 0) # 視聴回数
     likeCount = models.IntegerField(default= 0) # いいね回数
@@ -26,6 +28,7 @@ class Media(models.Model):
 # 講義一式を表現するクラス
 class Course(models.Model):
     name  = models.TextField()               # 講義名称
+    order = models.IntegerField(default= 0) # 表示順位
     mlist = models.ManyToManyField(Media)    # Media 一覧
     group = models.ForeignKey(Group, on_delete=models.PROTECT)  # 対応するグループ
     def __str__(self):
