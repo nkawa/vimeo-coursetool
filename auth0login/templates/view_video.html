@@ -19,7 +19,19 @@
                 <h5>{{vs.2}}</h5> 
 <!--             <div class="card card-body shadow-sm mb-4"> -->
                  <div class="col-12 col-xl-10">
-                    <div id="vplayer"  data-plyr-provider="vimeo" data-plyr-embed-id="{{ vs.3 }}">
+<!--                    <div id="vplayer"  data-plyr-provider="vimeo" data-plyr-embed-id="{{ vs.3 }}">
+                    </div>
+                                                src="https://player.vimeo.com/video/{{vs.3}}?loop=false&amp;byline=false&amp;portrait=false&amp;title=false&amp;speed=true&amp;transparent=0&amp;gesture=media#t={{vs.5}}m{{vs.6}}s"
+
+-->
+<!-- we use progressive enhancement version -->
+                    <div class="plyr__video-embed" id="vplayer">
+                        <iframe
+                            src="https://player.vimeo.com/video/{{vs.3}}?loop=false&amp;byline=false&amp;portrait=false&amp;title=false&amp;speed=true&amp;transparent=0&amp;gesture=media"
+                            allowfullscreen
+                            allowtransparency
+                            allow="autoplay"
+                       ></iframe>
                     </div>
                  </div>
                             <!--
@@ -42,7 +54,7 @@
 <!-- plyr 
 <script src="/static/assets/vendor/plyr/plyr.min.js"></script>-->
 <script>
-    var currentTime = {{vs.6}};
+    var currentTime = {{vs.4}}; // get last time from server 
     var cspeed = 1;
     var modified = false;
 
@@ -71,7 +83,7 @@
 
     function set_play_status(mode){ // set user and video status
         ct = player.currentTime
-        console.log(mode,"Time",player.currentTime, "Speed:",player.speed)
+//        console.log(mode,"Time",player.currentTime, "Speed:",player.speed)
         if (currentTime != ct){
             currentTime = ct;
             modified = true; // need push
@@ -82,7 +94,7 @@
         }
     }
 
-
+    // set update before unload the page.
     window.onbeforeunload = function(e){
         if (currentTime != 0 && modified){
             vd_update();
@@ -90,12 +102,41 @@
     }
     
 
-            const player = new Plyr('#vplayer');
+    var setflag = false;
+
+            const player = new Plyr('#vplayer',
+                {
+                    controls:['play','progress','current-time','mute','volume','settings','fullscreen'],
+//                    controls:[], //'play','current-time','volume','settings'],
+                    quality:{default:1080,options:[1080,720,576,480,360,240]},
+ //                   debug: false,
+                    vimeo:{
+                        startTime: {{vs.4}}
+                    }
+                });
+            player.on( 'ready', event  =>  {
+                console.log("ready from",{{vs.5}},"min",{{vs.6}},"sec");
+//                console.log("setCurrentTime",player.currentTime);
+//                player.currentTime = currentTime;
+//                console.log("getCurrentTime",player.currentTime);
+                setflag = true;
+//                player.play(); 
+//                window.setTimeout(()=>{ player.forward(currentTime); console.log("OK!", player.currentTime)},1500);
+            });
             player.on( 'play', event  =>  {
-                set_play_status("play");
+                if (setflag){
+//                    console.log("Set New seek!");
+                    window.setTimeout(()=>{ player.currentTime = {{vs.4}};},200);
+                    setflag= false;
+                } 
+//                set_play_status("play");
+            });
+            player.on( 'timeupdate', event  =>  {
+//                console.log("timeUpdate",player.currentTime);
             });
             player.on( 'playing', event  =>  {
-                set_play_status("playing");
+//                console.log("playing", player.currentTime, currentTime);
+//                set_play_status("playing");
             });
             player.on( 'progress', event  =>  {
                 set_play_status("progress");
@@ -107,11 +148,11 @@
                 set_play_status("ended");
             });
             player.on( 'seeking', event  =>  {
-                console.log("Seeking",event.detail.plyr);
+//                console.log("Seeking",event.detail.plyr);
             });
             player.on( 'ratechange', event  =>  {
-                console.log("RateChange",event.detail.plyr);
-                set_play_status("ratechange");
+ //               console.log("RateChange",event.detail.plyr);
+//                set_play_status("ratechange");
             });
 
             // leaving.

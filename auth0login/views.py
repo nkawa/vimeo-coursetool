@@ -195,7 +195,11 @@ def get_duration(media):  # vimeo の API から duration を取得
 def videos(request):
     user = request.user
     auth0user = user.social_auth.get(provider='auth0')
-    
+    try:
+        up = UserProfile.objects.get(user=user)
+    except: #とりあえず、エラー回避 (ここには来ないはず)
+        up = None
+
     # 各コースを見て、それぞれのグループを有しているかを確認
     gall = user.groups.all()
     gnames = [g.name for g in gall]
@@ -213,8 +217,18 @@ def videos(request):
                         get_thumbnail(media)
                     if media.duration == 0:    #時間が無い場合
                         get_duration(media)
+                    viewPercent = 0
+                    currentTime = 0
+                    if up is not None:
+                        mc = up.viewcount.filter(media=media)
+                        if len(mc)>0:
+                            currentTime = mc[0].currentTime
+                            viewPercent = int(currentTime*100/media.duration)
+                            print("Percent:",currentTime, media.duration,viewPercent )
                     nn.append((media.theme, media.name,media.lecturer, media.vid,n, media.thumb_url,
-                               int(media.duration/60), media.duration%60, media.viewCount, media.likeCount ))
+                               int(media.duration/60), media.duration%60, media.viewCount, media.likeCount,
+                               viewPercent, currentTime
+                                ))
                     n += 1
             cs_titles.append((cs.name,nn))
 
@@ -280,10 +294,14 @@ def set_video(request):
 def view_video(request):
     user = request.user
     auth0user = user.social_auth.get(provider='auth0')
+    try:
+        up = UserProfile.objects.get(user=user)
+    except: #とりあえず、エラー回避 (ここには来ないはず)
+        up = None    
 #
     if 'vid' in request.GET:
         view_id = request.GET['vid']
-        print("Show video of"+view_id)
+        #print("Show video of"+view_id)
     
     # 各コースを見て、それぞれのグループを有しているかを確認
     gall = user.groups.all()
@@ -299,7 +317,13 @@ def view_video(request):
             for media in cs.mlist.order_by('order'):   #メディアチェック
                 if media.enabled:
                     if media.vid == view_id: #　対象のビデオかどうか
-                        nn.append((media.theme, media.name,media.lecturer, media.vid,n, media.thumb_url ,0))
+                        currentTime = 0
+                        if up is not None:
+                            mc = up.viewcount.filter(media=media)
+                            if len(mc)>0:
+                                currentTime = mc[0].currentTime
+                                print("set currentTime ",currentTime)
+                        nn.append((media.theme, media.name,media.lecturer, media.vid, currentTime, int(currentTime/60),currentTime%60))
                         n += 1
             if len(nn)> 0:
                 cs_titles.append((cs.name,nn))

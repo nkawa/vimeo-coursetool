@@ -36,6 +36,9 @@
                                 {{vs.6}}分{{vs.7}}秒：
                                 <button class="btn btn-tertiary col-lg-3" onclick="window.location.href='/view_video?vid={{vs.3}}'"
                                 > 受講</button>
+                                {% if vs.10 > 0 %}
+                                   &nbsp;&nbsp; {{vs.10}}% 視聴済み
+                                {% endif %}
                             </div>
                         </div>
                     </div>
