@@ -29,6 +29,10 @@ SECRET_KEY = 'django-insecure-6jcn$qgw^3cv7zp81m04%eni^mv@ter=u54uwppqg34czm45u#
 DEBUG = True
 #DEBUG = False
 
+ENV_FILE = find_dotenv()
+if ENV_FILE:
+        load_dotenv(ENV_FILE)
+
 ALLOWED_HOSTS = [os.environ.get("ALLOWED_HOSTS")]
 
 
@@ -80,9 +84,6 @@ WSGI_APPLICATION = 'vimeoct.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 
-ENV_FILE = find_dotenv()
-if ENV_FILE:
-    load_dotenv(ENV_FILE)
 
 MYSQL_DB_NAME = os.environ.get('MYSQL_DB_NAME')
 MYSQL_DB_HOST = os.environ.get('MYSQL_DB_HOST')
