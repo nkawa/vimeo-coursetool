@@ -18,7 +18,7 @@ class Media(models.Model):
     vid  = models.CharField(max_length= 10)     # Vimeo上でのビデオID
     lecturer = models.CharField(max_length= 60) # 講師の名前
     theme = models.CharField(max_length=40)     # テーマ
-    thumb_url = models.CharField(max_length=128, default='')# サムネールのURL (自動登録)
+    thumb_url = models.CharField(max_length=128, default='', blank=True)# サムネールのURL (自動登録)
     duration =  models.IntegerField(default= 0) # ビデオの長さ（秒数）
     enabled = models.BooleanField(default=True) # ビデオがあるかないか（再生できるかどうか）
     viewCount = models.IntegerField(default= 0) # 視聴回数
