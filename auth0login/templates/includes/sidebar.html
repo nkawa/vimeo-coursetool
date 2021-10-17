@@ -7,7 +7,7 @@
           </div>
           <div class="d-block">
             <h2 class="h6">
-              {{ request.user.username }}
+              {{ request.user.first_name}}&nbsp;{{request.user.last_name}}
             </h2>
             <a href="{% url 'logout' %}" class="btn btn-secondary text-dark btn-xs"><span
                 class="me-2"><span class="fas fa-sign-out-alt"></span></span>Sign Out</a>
