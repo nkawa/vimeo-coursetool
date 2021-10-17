@@ -9,14 +9,13 @@
 
 {% block content %}
 
-  <div class="row">
-<!--      <div class="col-12 col-xl-5">-->
+<!--  <div class="row">-->
+      <div class="col-12 col-xl-12">
         {% if novideo %}
         現在、視聴可能なビデオはありません。登録をお願いします。
         {% endif %}
         
         {% for tt in cs_titles %}
-        <div class="col-12 col-xl-6">
            <div class="card card-body shadow-sm mb-4 mb-lg-4">
               <h2 class="h5 mb-4">
                 {{ tt.0 }} &nbsp ビデオ一覧
@@ -26,28 +25,18 @@
                     <div class="card card-body shadow-sm mb-4">
                         <div class="row">
                             <div class="col-12 col-xl-4">
-                                <img src="{{vs.5}}">
-<!--                                <div id="vplayer{{vs.4}}"  data-plyr-provider="vimeo" data-plyr-embed-id="{{ vs.3 }}">
+                                <div id="vplayer{{vs.4}}"  data-plyr-provider="vimeo" data-plyr-embed-id="{{ vs.3 }}">
                                 </div>
-                                -->
                             </div>
                             <div class="col-12 col-xl-8">
-                                <h5>{{ vs.1 }} </h5> &nbsp;&nbsp;{{vs.2}} <br />
-                                {{vs.6}}分{{vs.7}}秒：
-                                <button class="btn btn-tertiary col-lg-3" onclick="window.location.href='/view_video?vid={{vs.3}}'"
-                                > 受講</button>
-                                {% if vs.10 > 0 %}
-                                   &nbsp;&nbsp; {{vs.10}}% 視聴済み
-                                {% endif %}
+                                {{ vs.1 }} <br /> ：{{vs.2}} 
                             </div>
                         </div>
                     </div>
               {% endfor %}
             </div>
-        </div>
         {% endfor%}
-<!--    </div>
-</div>
+    </div>
    
 <!--    </div>-->
 
