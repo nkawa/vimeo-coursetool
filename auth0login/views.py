@@ -11,6 +11,7 @@ from .models import setTicket, Course, Media, UserProfile, MediaViewCount
 from django.core.exceptions import ObjectDoesNotExist
 
 from .vimeo_api import GetVimeoThummnail, GetVimeoDuration
+from django.utils import timezone
 
 import traceback
 import json
@@ -253,7 +254,7 @@ def set_video(request):
         vid = request.POST['vid']
     else:
         print("Not good!")
-        return HttpResponse("Bad")
+        return HttpResponse("{}")
 
     if 'currentTime' in request.POST:
         ct = request.POST['currentTime']
@@ -261,13 +262,13 @@ def set_video(request):
     # まずは、 UserProfileの取得
         try:
             up = UserProfile.objects.get(user=user)
-            print("Got!",vid,ct,sp)
+#            print("Got!",vid,ct,sp)
     # vid があるかをチェック
             media = Media.objects.get(vid=vid)
 
             vlist = up.viewcount.filter(media=media)
             if len(vlist) == 0:
-                print("No count!")
+ #               print("No count!")
                 mvc = MediaViewCount.objects.create(media=media,
                     currentTime=int(float(ct)))
                 up.viewcount.add(mvc)
@@ -276,8 +277,10 @@ def set_video(request):
                 mvc.save()
                 up.save()
             else:
+                # すでに視聴履歴があった場合は、時刻を update
                 mvc = vlist[0]
                 mvc.currentTime = int(float(ct))
+                mvc.lastview_time = timezone.now() #保存時点
                 mvc.save()
             print("Saved mediaViewCount",mvc)
 
@@ -285,7 +288,7 @@ def set_video(request):
             print("Can't get userProfile! or media")
             return HttpResponse("No up or media")
 
-    return HttpResponse("OK")
+    return HttpResponse("{}")
 
 
 
