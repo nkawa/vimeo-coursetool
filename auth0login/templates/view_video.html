@@ -57,6 +57,8 @@
     var currentTime = {{vs.4}}; // get last time from server 
     var cspeed = 1;
     var modified = false;
+    var view_duration = 0; // collect view duration from update info
+    var view_last_time = {{vs.4}}; // last time
 
     var csrf_token = document.getElementsByName("csrfmiddlewaretoken");
 
@@ -72,18 +74,20 @@
                 encodeURI("csrfmiddlewaretoken="+csrf_token[0].getAttribute("value")
                 +"&vid={{vs.3}}"+
                 "&currentTime="+currentTime+
+                "&duration="+view_duration+
                 "&cspeed="+cspeed)
             }).then(response=> response.json())
         .then(data => {
-            console.log("success",data)
+//            console.log("success",data)
         }).catch((error)=>{
-            console.log("Fetch failed!",error);
+            console.log("POST info failed!",error);
         });
     }
 
     function set_play_status(mode){ // set user and video status
         ct = player.currentTime
-//        console.log(mode,"Time",player.currentTime, "Speed:",player.speed)
+        view_last_time = ct; // change duration 
+        //        console.log(mode,"Time",player.currentTime, "Speed:",player.speed)
         if (currentTime != ct){
             currentTime = ct;
             modified = true; // need push
@@ -115,7 +119,7 @@
                     }
                 });
             player.on( 'ready', event  =>  {
-                console.log("ready from",{{vs.5}},"min",{{vs.6}},"sec");
+//                console.log("ready from",{{vs.5}},"min",{{vs.6}},"sec");
 //                console.log("setCurrentTime",player.currentTime);
 //                player.currentTime = currentTime;
 //                console.log("getCurrentTime",player.currentTime);
@@ -125,20 +129,26 @@
             });
             player.on( 'play', event  =>  {
                 if (setflag){
-//                    console.log("Set New seek!");
-                    window.setTimeout(()=>{ player.currentTime = {{vs.4}};},200);
+//                    console.log("Set New seek!");  // seeking only here works!
+                    window.setTimeout(()=>{ player.currentTime = {{vs.4}};},200); 
                     setflag= false;
                 } 
 //                set_play_status("play");
             });
             player.on( 'timeupdate', event  =>  {
-//                console.log("timeUpdate",player.currentTime);
+                const diff = player.currentTime-view_last_time;
+                if (diff > 0 && diff < 2){  // ignore seeking
+                    view_duration += diff;
+//                    console.log("timeUpdate",player.currentTime,view_duration, view_last_time);
+                }
+                view_last_time = player.currentTime;
             });
             player.on( 'playing', event  =>  {
 //                console.log("playing", player.currentTime, currentTime);
 //                set_play_status("playing");
             });
             player.on( 'progress', event  =>  {
+//                console.log("progress",player.currentTime);
                 set_play_status("progress");
             });
             player.on( 'pause', event  =>  {
@@ -148,10 +158,14 @@
                 set_play_status("ended");
             });
             player.on( 'seeking', event  =>  {
+                console.log("seeking",player.currentTime);
+                view_last_time = player.currentTime;
 //                console.log("Seeking",event.detail.plyr);
             });
             player.on( 'ratechange', event  =>  {
- //               console.log("RateChange",event.detail.plyr);
+                console.log("rateChange",player.currentTime);
+                view_last_time = player.currentTime;
+                //               console.log("RateChange",event.detail.plyr);
 //                set_play_status("ratechange");
             });
 
