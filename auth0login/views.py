@@ -203,14 +203,16 @@ def videos(request):
 
     # 各コースを見て、それぞれのグループを有しているかを確認
     gall = user.groups.all()
-    gnames = [g.name for g in gall]
+    gnames = [g.name for g in gall]  # 旧チケットの場合
     
 #    course_all = Course.objects.all()
     course_all = Course.objects.order_by('order')
     cs_titles = []
     n = 0
     for cs in course_all:
-        if any((cs.group == g) for g in gall):  # ここでグループチェック
+        if any((cs.group == g) for g in gall) or \
+           any((t.ticketType=="limit" and t.ticketCourse==cs) for t in user.profile.tickets.all()):         
+            # ここでグループチェック
             nn = []
             for media in cs.mlist.order_by('order'):   #メディアチェック
                 if media.enabled:
@@ -257,8 +259,9 @@ def set_video(request):
         return HttpResponse("{}")
 
     if 'currentTime' in request.POST:
-        ct = request.POST['currentTime']
-        sp = request.POST['cspeed']
+        ct = request.POST['currentTime']  #現在のメディア位置
+        dur = request.POST['duration']    #真の視聴時間
+        sp = request.POST['cspeed']       #視聴速度
     # まずは、 UserProfileの取得
         try:
             up = UserProfile.objects.get(user=user)
@@ -270,7 +273,7 @@ def set_video(request):
             if len(vlist) == 0:
  #               print("No count!")
                 mvc = MediaViewCount.objects.create(media=media,
-                    currentTime=int(float(ct)))
+                    currentTime=int(float(ct)), totalViewSec=int(float(dur)),view_speed=float(sp))
                 up.viewcount.add(mvc)
                 media.viewCount = media.viewCount+1
                 media.save()
@@ -280,6 +283,10 @@ def set_video(request):
                 # すでに視聴履歴があった場合は、時刻を update
                 mvc = vlist[0]
                 mvc.currentTime = int(float(ct))
+                mvc.totalViewSec = mvc.totalViewSec+int(float(dur))
+                if mvc.totalViewSec > mvc.media.duration:
+                     mvc.totalViewSec = mvc.media.duration  # set max
+                mvc.view_speed = float(sp)
                 mvc.lastview_time = timezone.now() #保存時点
                 mvc.save()
             print("Saved mediaViewCount",mvc)
@@ -315,7 +322,9 @@ def view_video(request):
     cs_titles = []
     n = 0
     for cs in course_all:
-        if any((cs.group == g) for g in gall):  # ここでグループチェック
+        if any((cs.group == g) for g in gall) or \
+           any((t.ticketType=="limit" and t.ticketCourse==cs) for t in user.profile.tickets.all()):
+            # ここでグループチェック
             nn = []
             for media in cs.mlist.order_by('order'):   #メディアチェック
                 if media.enabled:

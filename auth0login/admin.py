@@ -21,6 +21,23 @@ class MediaFilter(admin.SimpleListFilter):
             return Media.objects.all()
         return c[0].mlist.all()
 
+# メディアの平均視聴時間
+def averageVideoView(lst):
+    aveView = 0.0
+    aveTime = 0.0
+    ll = len(lst)
+    if ll == 0:
+        return "None"
+    for v in lst:
+        aveView += 100*(v.totalViewSec/v.media.duration)
+        aveTime += 100*(v.currentTime/v.media.duration)
+    aveView /= ll
+    aveTime /= ll
+    return "Ct:"+str(ll)+",T:{t}%,V:{v}%".format(t=int(aveTime),v=int(aveView))
+
+
+
+
 
 @admin.register(Media)
 class MediaAdmin(admin.ModelAdmin):
@@ -38,13 +55,22 @@ class MediaAdmin(admin.ModelAdmin):
 class CourseAdmin(admin.ModelAdmin):
     pass
 
-@admin.register(UserProfile)
-class UserProfileAdmin(admin.ModelAdmin):
-    pass
-
 @admin.register(MediaViewCount)
 class MediaViewCountAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("media","curTimeP","totalViewTime","view_speed","viewstart_time","lastview_time")
+    def curTimeP(self,obj):
+        return str(int(100*obj.currentTime/obj.media.duration))+"%"
+    def totalViewTime(self,obj):
+        return str(int(100*obj.totalViewSec/obj.media.duration))+"%"
 
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ("user_name","video_view","affi","position","zip","city","lastlogin_date")
+    def user_name(self, obj):
+        print("UserProfile Name!",vars(self))
+        print("Object",vars(obj))
+        return obj.user.first_name+" "+obj.user.last_name
 
+    def video_view(self, obj):
 
+        return averageVideoView(obj.viewcount.all())

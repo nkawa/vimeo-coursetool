@@ -4,13 +4,6 @@ from django.utils import timezone
 
 # Create your models here.
 
-class Ticket(models.Model):
-    ticketName = models.CharField(max_length=40)    # チケット名称
-    ticketGroup = models.CharField(max_length=20)   # チケットが権限を付与する Group
-    ticketKeyword = models.CharField(max_length=20) # チケットのキーワード
-    ticketCount = models.IntegerField(default= 0)             # チケット受付数（あくまで参考値）
-    def __str__(self):
-        return self.ticketName+":Key:"+self.ticketKeyword
 
 # 個別のビデオを表現するクラス
 class Media(models.Model):
@@ -36,6 +29,18 @@ class Course(models.Model):
     def __str__(self):
         return self.name+ ":MediaCount "+str(len(self.mlist.all()))
 
+class Ticket(models.Model):
+    ticketName = models.CharField(max_length=40)    # チケット名称
+    ticketGroup = models.CharField(max_length=20)   # チケットが権限を付与する Group
+    ticketKeyword = models.CharField(max_length=20) # チケットのキーワード
+    ticketType = models.CharField(max_length=20,default='')    # チケット種別（追加)
+    ticketUntil  = models.DateTimeField(default=timezone.now)  #  チケットの期限
+    ticketCourse = models.ForeignKey(Course, default=1,blank=True, on_delete=models.PROTECT) # 見られるコース
+    ticketCount = models.IntegerField(default= 0)             # チケット受付数（あくまで参考値）
+    def __str__(self):
+        return self.ticketName+":Key:"+self.ticketKeyword
+
+
 # ビデオの視聴状況を使うためのデータ (再生が始まったタイミングで作成され, ページ遷移前に保存 )
 # これが作成されたタイミングで Media の Viewカウントを追加
 class MediaViewCount(models.Model):
@@ -44,10 +49,11 @@ class MediaViewCount(models.Model):
     currentTime = models.IntegerField(default= 0)     # どこまで視聴したか（最後の状況）
     is_like = models.BooleanField(default=False)                    # Likeかどうか
     totalViewSec = models.IntegerField(default=0)     # 全視聴時間（推定）
+    view_speed = models.FloatField(default=1.0)        # 視聴速度
     viewstart_time = models.DateTimeField(default=timezone.now) #最初の視聴時間
     lastview_time = models.DateTimeField(default=timezone.now)  #最後の視聴時間
     def __str__(self):
-        return self.media.name+":"+str(self.userprofile_set.all()[0])+"["+str(int(100*self.totalViewSec/self.media.duration))+"%] last view:"+str(self.lastview_time)[:19]
+        return self.media.name+":"+str(self.userprofile_set.all()[0])+"["+str(int(100*self.currentTime/self.media.duration))+"%/"+str(int(100*self.totalViewSec/self.media.duration))+"%] last view:"+str(self.lastview_time)[:19]
 
 # ユーザ プロフィール
 class UserProfile(models.Model):
@@ -58,6 +64,8 @@ class UserProfile(models.Model):
     city = models.CharField(max_length = 30)     # 県・市
     # Video の視聴カウント
     viewcount = models.ManyToManyField(MediaViewCount)    # 視聴したMediaViewCount 一覧
+    # チケット一覧
+    tickets = models.ManyToManyField(Ticket)              # 所持中のチケット
     regist_date = models.DateTimeField(default=timezone.now)    #登録日
     lastlogin_date = models.DateTimeField(default=timezone.now) #最終ログイン日
     def __str__(self):
@@ -74,12 +82,23 @@ def setTicket(user,keyw):
         return False
     else:
         tk = tickets[0]
-        gp = Group.objects.filter(name__exact=tk.ticketGroup)
-        print("find Group!", gp)
-        if len(gp) > 0:
-            user.groups.add(gp[0])
+        # ここで、 従来のグループか、新チケットかを確認
+        if len(tk.ticketType)==0: # 旧チケット
+            gp = Group.objects.filter(name__exact=tk.ticketGroup)
+            print("find Group!", gp)
+            if len(gp) > 0:
+                user.groups.add(gp[0])
+                tk.ticketCount += 1
+                tk.save()
+                user.save()
+                return True
+        elif tk.ticketType == "limit":
+            # 期限つきチケット(UP直接)
+            up = user.profile
+            up.tickets.add(tk)
             tk.ticketCount += 1
             tk.save()
-            user.save()
-            return True        
+            up.save()
+            return True
+
         return False
