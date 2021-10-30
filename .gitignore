@@ -130,3 +130,5 @@ dmypy.json
 
 ## for Django migration file
 /auth0login/migrations
+
+db-backups
