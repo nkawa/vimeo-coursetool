@@ -67,8 +67,8 @@ class MediaViewCountAdmin(admin.ModelAdmin):
 class UserProfileAdmin(admin.ModelAdmin):
     list_display = ("user_name","video_view","affi","position","zip","city","lastlogin_date")
     def user_name(self, obj):
-        print("UserProfile Name!",vars(self))
-        print("Object",vars(obj))
+#        print("UserProfile Name!",vars(self))
+#        print("Object",vars(obj))
         return obj.user.first_name+" "+obj.user.last_name
 
     def video_view(self, obj):

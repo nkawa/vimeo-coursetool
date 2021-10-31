@@ -15,19 +15,19 @@
         現在、視聴可能なビデオはありません。登録をお願いします。
         {% endif %}
             <div class="card card-body shadow-sm mb-4 mb-lg-4">                             
-                <h4>{{cs_titles.0.0}}: {{ vs.0 }}「{{ vs.1 }}」</h4>
-                <h5>{{vs.2}}</h5> 
+                <h4>{{vs.0}}: {{ vs.1 }}「{{ vs.2 }}」</h4>
+                <h5>{{vs.3}}</h5> 
 <!--             <div class="card card-body shadow-sm mb-4"> -->
                  <div class="col-12 col-xl-10">
-<!--                    <div id="vplayer"  data-plyr-provider="vimeo" data-plyr-embed-id="{{ vs.3 }}">
+<!--                    <div id="vplayer"  data-plyr-provider="vimeo" data-plyr-embed-id="{{ vs.4 }}">
                     </div>
-                                                src="https://player.vimeo.com/video/{{vs.3}}?loop=false&amp;byline=false&amp;portrait=false&amp;title=false&amp;speed=true&amp;transparent=0&amp;gesture=media#t={{vs.5}}m{{vs.6}}s"
+                                                src="https://player.vimeo.com/video/{{vs.4}}?loop=false&amp;byline=false&amp;portrait=false&amp;title=false&amp;speed=true&amp;transparent=0&amp;gesture=media#t={{vs.6}}m{{vs.7}}s"
 
 -->
 <!-- we use progressive enhancement version -->
                     <div class="plyr__video-embed" id="vplayer">
                         <iframe
-                            src="https://player.vimeo.com/video/{{vs.3}}?loop=false&amp;byline=false&amp;portrait=false&amp;title=false&amp;speed=true&amp;transparent=0&amp;gesture=media"
+                            src="https://player.vimeo.com/video/{{vs.4}}?loop=false&amp;byline=false&amp;portrait=false&amp;title=false&amp;speed=true&amp;transparent=0&amp;gesture=media"
                             allowfullscreen
                             allowtransparency
                             allow="autoplay"
@@ -54,11 +54,11 @@
 <!-- plyr 
 <script src="/static/assets/vendor/plyr/plyr.min.js"></script>-->
 <script>
-    var currentTime = {{vs.4}}; // get last time from server 
+    var currentTime = {{vs.5}}; // get last time from server 
     var cspeed = 1;
     var modified = false;
     var view_duration = 0; // collect view duration from update info
-    var view_last_time = {{vs.4}}; // last time
+    var view_last_time = {{vs.5}}; // last time
 
     var csrf_token = document.getElementsByName("csrfmiddlewaretoken");
 
@@ -72,11 +72,14 @@
             },
             body: 
                 encodeURI("csrfmiddlewaretoken="+csrf_token[0].getAttribute("value")
-                +"&vid={{vs.3}}"+
+                +"&vid={{vs.4}}"+
                 "&currentTime="+currentTime+
                 "&duration="+view_duration+
                 "&cspeed="+cspeed)
-            }).then(response=> response.json())
+            }).then(response=> {
+                view_duration = 0;
+                response.json();
+            })
         .then(data => {
 //            console.log("success",data)
         }).catch((error)=>{
@@ -115,11 +118,11 @@
                     quality:{default:1080,options:[1080,720,576,480,360,240]},
  //                   debug: false,
                     vimeo:{
-                        startTime: {{vs.4}}
+                        startTime: {{vs.5}}
                     }
                 });
             player.on( 'ready', event  =>  {
-//                console.log("ready from",{{vs.5}},"min",{{vs.6}},"sec");
+//                console.log("ready from",{{vs.6}},"min",{{vs.7}},"sec");
 //                console.log("setCurrentTime",player.currentTime);
 //                player.currentTime = currentTime;
 //                console.log("getCurrentTime",player.currentTime);
@@ -130,7 +133,7 @@
             player.on( 'play', event  =>  {
                 if (setflag){
 //                    console.log("Set New seek!");  // seeking only here works!
-                    window.setTimeout(()=>{ player.currentTime = {{vs.4}};},200); 
+                    window.setTimeout(()=>{ player.currentTime = {{vs.5}};},200); 
                     setflag= false;
                 } 
 //                set_play_status("play");

@@ -17,6 +17,7 @@ urlpatterns = [
     path('profile.html', views.profile),
     path('usages.html', views.usages),
     path('videos.html', views.videos),
+    path('courses.html', views.courses),
     path('view_video.html', views.view_video),
     path('view_video', views.view_video),
     path('register.html', views.register),

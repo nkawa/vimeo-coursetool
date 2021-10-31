@@ -78,14 +78,15 @@ def setTicket(user,keyw):
     tickets = Ticket.objects.filter(ticketKeyword__exact=keyw)
     print("Filter Ticket",keyw,tickets)
     if len(tickets) == 0 :
-        print("No ticket")
+#        print("No ticket")
         return False
     else:
         tk = tickets[0]
         # ここで、 従来のグループか、新チケットかを確認
+        # 2種類のチケットの存在を意識すべき
         if len(tk.ticketType)==0: # 旧チケット
             gp = Group.objects.filter(name__exact=tk.ticketGroup)
-            print("find Group!", gp)
+#            print("find Group!", gp)
             if len(gp) > 0:
                 user.groups.add(gp[0])
                 tk.ticketCount += 1
