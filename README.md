@@ -17,3 +17,5 @@ python3 manage.py migrate
 
 ### port 3000 by nginx reverse proxy
 python3 manage.py runserver 3000
+
+or you may run with WSGI servers (gunicorn)

@@ -31,6 +31,83 @@ def index(request):
 # obtain touser from auth user
 #def get_tmi_online_user(user):
 
+# common context infomation
+def base_context(request, pagename):
+    user = request.user
+    context = {}
+    context['segment'] = pagename
+    if not user.is_anonymous:
+        auth0user = user.social_auth.get(provider='auth0')
+        # check auth0!
+        context['auth0pic'] = auth0user.extra_data['picture']
+    else:
+        context['auth0pic'] = ""
+
+    try: 
+        up = UserProfile.objects.get(user=user)
+    except:
+        up = None
+
+    gall = user.groups.all()
+    gnames = [g.name for g in gall]  # 旧チケットの場合
+
+    if pagename=='view_video':
+        if 'vid' in request.GET:
+            view_id = request.GET['vid']
+        #print("Show video of"+view_id)
+
+
+    course_all = Course.objects.order_by('order')
+    cs_titles = []
+    n = 0
+    for cs in course_all:
+        if any((cs.group == g) for g in gall) or \
+           any((t.ticketType=="limit" and t.ticketCourse==cs) for t in user.profile.tickets.all()):         
+            # ここでグループチェック
+            nn = []
+            for media in cs.mlist.order_by('order'):   #メディアチェック
+                if media.enabled:
+#                    if pagename=='view_video'and view_id != media.vid: #　対象のビデオかどうか
+#                        continue
+                    if media.thumb_url == '':  #サムネールが無い場合
+                        get_thumbnail(media)
+                    if media.duration == 0:    #時間が無い場合
+                        get_duration(media)
+                    viewPercent = 0
+                    currentTime = 0
+                    if up is not None:
+                        mc = up.viewcount.filter(media=media)
+                        if len(mc)>0:
+                            currentTime = mc[0].currentTime
+                            viewPercent = int(0.6+currentTime*100/media.duration)
+ #                           print("Percent:",currentTime, media.duration,viewPercent )
+                    if pagename=='view_video' and media.vid == view_id:
+                        # view_video のときは vs と cs を設定
+                        context['vs'] = (cs.name,media.theme, media.name,media.lecturer, media.vid, currentTime, int(currentTime/60),currentTime%60)
+                        context['cs'] = cs.id
+                        context['segment'] = 'courses' # コースの選択にする
+#                        print("View Video",context['vs'])
+
+                    nn.append((media.theme, media.name,media.lecturer, media.vid,n, media.thumb_url,
+                               int(media.duration/60), media.duration%60, media.viewCount, media.likeCount,
+                               viewPercent, currentTime
+                                ))
+
+                    n += 1
+            stitle = cs.name
+            if len(cs.name)> 10:
+                stitle = cs.name[:8]+".."+cs.name[-2:]
+            if len(nn) > 0:
+                cs_titles.append((cs.name,nn,cs.id,stitle))
+    ## cs_titles に は [(cs.name, [(media情報1...),(media2...),... ])] 
+
+    context['cs_titles'] = cs_titles
+    if len(cs_titles)== 0:
+        context['novideo'] = True
+    else:
+        context['novideo'] = False
+
+    return context
 
 
 
@@ -42,10 +119,14 @@ def dashboard(request):
         print("Got User! in Dashboard", user,auth0user)
     # check if userProfile is created.
         up =  UserProfile.objects.get(user=user)
-        up.save()
+#        up.save()
         print("Get UserProfile!",up)
     except ObjectDoesNotExist:
-        print("Can't get userProfile!")
+        if not 'auth0user' in locals():
+            print("Can't get auth0user")
+            return redirect(logout)
+        print("Can't get userProfile!", auth0user)
+
         up =  UserProfile.objects.create(user=user)
         return redirect(user_settings)
     except:
@@ -61,10 +142,7 @@ def dashboard(request):
         'email': auth0user.extra_data['email']
     }
 
-    context = {}
-    context['segment'] = 'dashboard'
-    context['auth0user'] = auth0user
-    context['auth0pic'] = auth0user.extra_data['picture']
+    context = base_context(request,'dashboard')
 
     html_template =  loader.get_template( 'dashboard.html' )
     return HttpResponse(html_template.render(context, request))
@@ -84,9 +162,7 @@ def user_settings(request):
     except:
         return redirect(logout)
 
-    context = {}
-    context['segment'] = 'settings'
-    context['auth0pic'] = auth0user.extra_data['picture']
+    context = base_context(request,'settings')
     context['profinp'] = 'view'
     context['username'] = user.username
     context['first_name'] = user.first_name
@@ -122,10 +198,7 @@ def profile(request):
         user.save()
         up.save()
 
-
-    context = {}
-    context['segment'] = 'settings'
-    context['auth0pic'] = auth0user.extra_data['picture']
+    context = base_context(request,'settings')
     context['profinp'] = 'edit'
     context['up'] = up  # UserProfile
     context['email'] = auth0user.extra_data['email']
@@ -136,19 +209,15 @@ def profile(request):
 
 @login_required
 def usages(request):
-    user = request.user
-    auth0user = user.social_auth.get(provider='auth0')
-    context = {}
-    context['segment'] = 'usages'
-    context['auth0pic'] = auth0user.extra_data['picture']
-
+    context = base_context(request,'usages')
     html_template =  loader.get_template( 'usages.html' )
     return HttpResponse(html_template.render(context, request))
 
 @login_required
 def register(request):
     user = request.user
-    context = {}
+    context = base_context(request,'register')
+
     context['err_message'] = ""
     if request.method == "POST":
         token = request.POST['ticket_name']
@@ -156,10 +225,6 @@ def register(request):
         if setTicket(user,token):
             return redirect(videos)
         context['err_message'] = "Error with Keyword! Please retry."        
-
-    auth0user = user.social_auth.get(provider='auth0')
-    context['segment'] = 'register'
-    context['auth0pic'] = auth0user.extra_data['picture']
 
     html_template =  loader.get_template( 'register.html' )
     return HttpResponse(html_template.render(context, request))
@@ -188,62 +253,26 @@ def get_thumbnail(media):  # vimeo の embed から thumbnail を取得
 
 def get_duration(media):  # vimeo の API から duration を取得
     dur = GetVimeoDuration(media.vid)
-    print("Get Video Duraion:"+media.vid, dur)
+#    print("Get Video Duraion:"+media.vid, dur)
     media.duration = int(dur)
     media.save()
 
 @login_required
 def videos(request):
-    user = request.user
-    auth0user = user.social_auth.get(provider='auth0')
-    try:
-        up = UserProfile.objects.get(user=user)
-    except: #とりあえず、エラー回避 (ここには来ないはず)
-        up = None
-
-    # 各コースを見て、それぞれのグループを有しているかを確認
-    gall = user.groups.all()
-    gnames = [g.name for g in gall]  # 旧チケットの場合
+    context = base_context(request,'videos')
     
-#    course_all = Course.objects.all()
-    course_all = Course.objects.order_by('order')
-    cs_titles = []
-    n = 0
-    for cs in course_all:
-        if any((cs.group == g) for g in gall) or \
-           any((t.ticketType=="limit" and t.ticketCourse==cs) for t in user.profile.tickets.all()):         
-            # ここでグループチェック
-            nn = []
-            for media in cs.mlist.order_by('order'):   #メディアチェック
-                if media.enabled:
-                    if media.thumb_url == '':  #サムネールが無い場合
-                        get_thumbnail(media)
-                    if media.duration == 0:    #時間が無い場合
-                        get_duration(media)
-                    viewPercent = 0
-                    currentTime = 0
-                    if up is not None:
-                        mc = up.viewcount.filter(media=media)
-                        if len(mc)>0:
-                            currentTime = mc[0].currentTime
-                            viewPercent = int(currentTime*100/media.duration)
-                            print("Percent:",currentTime, media.duration,viewPercent )
-                    nn.append((media.theme, media.name,media.lecturer, media.vid,n, media.thumb_url,
-                               int(media.duration/60), media.duration%60, media.viewCount, media.likeCount,
-                               viewPercent, currentTime
-                                ))
-                    n += 1
-            cs_titles.append((cs.name,nn))
-
-    context = {}
-    context['segment'] = 'videos'
-    context['auth0pic'] = auth0user.extra_data['picture']
-    context['cs_titles'] = cs_titles
-    context['novideo'] = False
-    if len(cs_titles)== 0:
-        context['novideo'] = True
-
     html_template =  loader.get_template( 'videos.html' )
+    return HttpResponse(html_template.render(context, request))
+
+
+## courses 各コース毎に表示させたい
+@login_required
+def courses(request):
+    context = base_context(request,'courses')
+    cs = request.GET['cs']
+#    print("CS is ",cs,type(cs))
+    context['cs']=int(cs)
+    html_template =  loader.get_template( 'courses.html' )
     return HttpResponse(html_template.render(context, request))
 
 
@@ -254,6 +283,7 @@ def set_video(request):
 #    print("User:",user) # user があるのか？
     if 'vid' in request.POST:
         vid = request.POST['vid']
+ #       print("VID is ",vid)
     else:
         print("Not good!")
         return HttpResponse("{}")
@@ -263,9 +293,11 @@ def set_video(request):
         dur = request.POST['duration']    #真の視聴時間
         sp = request.POST['cspeed']       #視聴速度
     # まずは、 UserProfileの取得
+        print("Got!",user, vid,ct,"Duration:",dur,"speed:",sp)
         try:
             up = UserProfile.objects.get(user=user)
-#            print("Got!",vid,ct,sp)
+#            print("Got User Profile!",up)
+
     # vid があるかをチェック
             media = Media.objects.get(vid=vid)
 
@@ -293,6 +325,7 @@ def set_video(request):
 
         except ObjectDoesNotExist:
             print("Can't get userProfile! or media")
+
             return HttpResponse("No up or media")
 
     return HttpResponse("{}")
@@ -302,77 +335,20 @@ def set_video(request):
 # １つのビデオだけをみる
 @login_required
 def view_video(request):
-    user = request.user
-    auth0user = user.social_auth.get(provider='auth0')
-    try:
-        up = UserProfile.objects.get(user=user)
-    except: #とりあえず、エラー回避 (ここには来ないはず)
-        up = None    
-#
-    if 'vid' in request.GET:
-        view_id = request.GET['vid']
-        #print("Show video of"+view_id)
-    
-    # 各コースを見て、それぞれのグループを有しているかを確認
-    gall = user.groups.all()
-    gnames = [g.name for g in gall]
-    
-#    course_all = Course.objects.all()
-    course_all = Course.objects.order_by('order')
-    cs_titles = []
-    n = 0
-    for cs in course_all:
-        if any((cs.group == g) for g in gall) or \
-           any((t.ticketType=="limit" and t.ticketCourse==cs) for t in user.profile.tickets.all()):
-            # ここでグループチェック
-            nn = []
-            for media in cs.mlist.order_by('order'):   #メディアチェック
-                if media.enabled:
-                    if media.vid == view_id: #　対象のビデオかどうか
-                        currentTime = 0
-                        if up is not None:
-                            mc = up.viewcount.filter(media=media)
-                            if len(mc)>0:
-                                currentTime = mc[0].currentTime
-                                print("set currentTime ",currentTime)
-                        nn.append((media.theme, media.name,media.lecturer, media.vid, currentTime, int(currentTime/60),currentTime%60))
-                        n += 1
-            if len(nn)> 0:
-                cs_titles.append((cs.name,nn))
-
-    context = {}
-    context['segment'] = 'videos'
-    context['auth0pic'] = auth0user.extra_data['picture']
-    context['cs_titles'] = cs_titles
-    context['vs'] = cs_titles[0][1][0]
-    context['novideo'] = False
-    if len(cs_titles)== 0:
-        context['novideo'] = True
+    context = base_context(request,'view_video')
 
     html_template =  loader.get_template( 'view_video.html' )
     return HttpResponse(html_template.render(context, request))
 
 
 def privacy(request):
-    context = {}
-    user = request.user
-    if not user.is_anonymous:
-        auth0user = user.social_auth.get(provider='auth0')
-        context['auth0pic'] = auth0user.extra_data['picture']
-    else:
-        context['auth0pic'] = ""
+    context = base_context(request)
     context['segment'] = 'privacy'
     html_template =  loader.get_template( 'privacy.html' )
     return HttpResponse(html_template.render(context, request))
 
 def terms(request):
-    context = {}
-    user = request.user
-    if not user.is_anonymous:
-        auth0user = user.social_auth.get(provider='auth0')
-        context['auth0pic'] = auth0user.extra_data['picture']
-    else:
-        context['auth0pic'] = ""
+    context = base_context(request)
     context['segment'] = 'terms'
     html_template =  loader.get_template( 'terms.html' )
     return HttpResponse(html_template.render(context, request))
