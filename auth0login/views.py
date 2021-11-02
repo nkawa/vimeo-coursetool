@@ -342,14 +342,12 @@ def view_video(request):
 
 
 def privacy(request):
-    context = base_context(request)
-    context['segment'] = 'privacy'
+    context = base_context(request,'privacy')
     html_template =  loader.get_template( 'privacy.html' )
     return HttpResponse(html_template.render(context, request))
 
 def terms(request):
-    context = base_context(request)
-    context['segment'] = 'terms'
+    context = base_context(request,'terms')
     html_template =  loader.get_template( 'terms.html' )
     return HttpResponse(html_template.render(context, request))
 
