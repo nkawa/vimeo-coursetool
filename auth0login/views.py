@@ -60,11 +60,18 @@ def base_context(request, pagename):
     course_all = Course.objects.order_by('order')
     cs_titles = []
     n = 0
+    lastMedia = ""
+    lastMediaName = ""
+    nextMedia = ""
+    nextMediaName = ""
     for cs in course_all:
         if any((cs.group == g) for g in gall) or \
            any((t.ticketType=="limit" and t.ticketCourse==cs) for t in user.profile.tickets.all()):         
             # ここでグループチェック
             nn = []
+            lastID=""
+            lastName=""
+            vflag = False
             for media in cs.mlist.order_by('order'):   #メディアチェック
                 if media.enabled:
 #                    if pagename=='view_video'and view_id != media.vid: #　対象のビデオかどうか
@@ -79,15 +86,24 @@ def base_context(request, pagename):
                         mc = up.viewcount.filter(media=media)
                         if len(mc)>0:
                             currentTime = mc[0].currentTime
-                            viewPercent = int(0.6+currentTime*100/media.duration)
+                            totalView = mc[0].totalViewSec
+#                            viewPercent = int(0.6+currentTime*100/media.duration)
+                            viewPercent = int(0.6+totalView*100/media.duration)
  #                           print("Percent:",currentTime, media.duration,viewPercent )
+                    if vflag and len(nextMedia)==0:
+                        nextMedia = media.vid
+                        nextMediaName = media.name
                     if pagename=='view_video' and media.vid == view_id:
                         # view_video のときは vs と cs を設定
                         context['vs'] = (cs.name,media.theme, media.name,media.lecturer, media.vid, currentTime, int(currentTime/60),currentTime%60)
                         context['cs'] = cs.id
                         context['segment'] = 'courses' # コースの選択にする
+                        lastMedia = lastID
+                        lastMediaName = lastName
+                        vflag = True  # 見つけたフラグ
 #                        print("View Video",context['vs'])
-
+                    lastID = media.vid
+                    lastName = media.name
                     nn.append((media.theme, media.name,media.lecturer, media.vid,n, media.thumb_url,
                                int(media.duration/60), media.duration%60, media.viewCount, media.likeCount,
                                viewPercent, currentTime
@@ -106,6 +122,9 @@ def base_context(request, pagename):
         context['novideo'] = True
     else:
         context['novideo'] = False
+
+    if pagename=='view_video':
+        context['xs'] = (lastMedia, lastMediaName, nextMedia, nextMediaName)
 
     return context
 
