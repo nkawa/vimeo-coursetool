@@ -34,6 +34,17 @@
                        ></iframe>
                     </div>
                  </div>
+                <div class="col-12 col-xl-8">
+                    {% if xs.0 != "" %}
+                      <a href="/view_video?vid={{xs.0}}">[Prev]{{xs.1}}</a>
+                    {% endif %}
+                </div>
+                <div class="col-12 col-xl-8">
+                    {% if xs.2 != "" %}
+                        <a href="/view_video?vid={{xs.2}}">[Next]{{xs.3}}</a>
+                    {% endif %}
+                </div>
+
                             <!--
                             <div class="col-12 col-xl-8">
                                 <h3>
