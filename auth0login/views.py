@@ -76,10 +76,13 @@ def base_context(request, pagename):
                 if media.enabled:
 #                    if pagename=='view_video'and view_id != media.vid: #　対象のビデオかどうか
 #                        continue
-                    if media.thumb_url == '':  #サムネールが無い場合
-                        get_thumbnail(media)
-                    if media.duration == 0:    #時間が無い場合
-                        get_duration(media)
+                    try:
+                        if media.thumb_url == '':  #サムネールが無い場合
+                            get_thumbnail(media)
+                        if media.duration == 0:    #時間が無い場合
+                            get_duration(media)
+                    except: # ignore any error now
+                        pass
                     viewPercent = 0
                     currentTime = 0
                     if up is not None:
