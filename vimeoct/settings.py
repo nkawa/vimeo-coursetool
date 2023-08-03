@@ -26,8 +26,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-6jcn$qgw^3cv7zp81m04%eni^mv@ter=u54uwppqg34czm45u#'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-#DEBUG = True
-DEBUG = False
+DEBUG = True
+#DEBUG = False
 
 ENV_FILE = find_dotenv()
 if ENV_FILE:
@@ -83,26 +83,32 @@ WSGI_APPLICATION = 'vimeoct.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-
-
-MYSQL_DB_NAME = os.environ.get('MYSQL_DB_NAME')
-MYSQL_DB_HOST = os.environ.get('MYSQL_DB_HOST')
-MYSQL_DB_USER = os.environ.get('MYSQL_DB_USER') 
-MYSQL_DB_PASSWORD = os.environ.get('MYSQL_DB_PASSWORD') 
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': MYSQL_DB_NAME,
-        'USER': MYSQL_DB_USER,
-        'PASSWORD': MYSQL_DB_PASSWORD, 
-        'HOST': MYSQL_DB_HOST,
-        'PORT': '3306',
-        'OPTIONS':{
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
-        },
-    }
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME'  : str(BASE_DIR / 'db.sqlite3'),
+        }
 }
+
+
+#MYSQL_DB_NAME = os.environ.get('MYSQL_DB_NAME')
+#MYSQL_DB_HOST = os.environ.get('MYSQL_DB_HOST')
+#MYSQL_DB_USER = os.environ.get('MYSQL_DB_USER') 
+#MYSQL_DB_PASSWORD = os.environ.get('MYSQL_DB_PASSWORD') 
+
+#DATABASES = {
+#    'default': {
+#        'ENGINE': 'django.db.backends.mysql',
+#        'NAME': MYSQL_DB_NAME,
+#        'USER': MYSQL_DB_USER,
+#        'PASSWORD': MYSQL_DB_PASSWORD, 
+#        'HOST': MYSQL_DB_HOST,
+#        'PORT': '3306',
+#        'OPTIONS':{
+#            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+#        },
+#    }
+#}
 
 
 # Password validation
