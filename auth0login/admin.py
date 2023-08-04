@@ -2,9 +2,9 @@ from django.contrib import admin
 from .models import Ticket, Media, Course, UserProfile, MediaViewCount
 # Register your models here.
 
-admin.site.site_header = 'TMI online admin'
-admin.site.site_title = 'TMI online admin'
-admin.site.index_title = 'TMI online admin'
+admin.site.site_header = 'MIP online admin'
+admin.site.site_title = 'MIP online admin'
+admin.site.index_title = 'MIP online admin'
 
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
